@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>..\bin\Debug</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>..\bin\Release</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="BepuPhysics" Version="2.5.0-beta.29" />
+      <PackageReference Include="BepuUtilities" Version="2.5.0-beta.29" />
+      <PackageReference Include="DynamicLua" Version="1.1.2" />
+      <PackageReference Include="NLog" Version="6.1.2" />
+      <PackageReference Include="NLog.Extensions.Logging" Version="6.1.2" />
+      <PackageReference Include="NLua" Version="1.7.8" />
+      <PackageReference Include="SharpGLTF.Core" Version="1.0.6" />
+      <PackageReference Include="SharpGLTF.Runtime" Version="1.0.6" />
+      <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
+    </ItemGroup>
+
+</Project>
