@@ -49,7 +49,7 @@ public class Server
         Logger.Info("Tick loop stopped.");
     }
 
-    private void OnTick()
+    private static void OnTick()
     {
         // Game simulation here — networking, world updates, etc.
     }
@@ -91,7 +91,7 @@ public class Server
         }
     }
 
-    private void PrintHelp()
+    private static void PrintHelp()
     {
         Console.WriteLine("");
         Console.WriteLine("Available commands:");
@@ -117,7 +117,7 @@ public class Server
         return $"{(int)uptime.TotalHours}h {uptime.Minutes}m {uptime.Seconds}s";
     }
 
-    public void Stop()
+    private void Stop()
     {
         Logger.Info("Server stopping...");
         _isRunning = false;
