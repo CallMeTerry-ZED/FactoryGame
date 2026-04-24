@@ -3,9 +3,10 @@ using Serilog.Exceptions;
 
 namespace FactoryGame.Core.Log;
 
-public class Logger
+public static class Logger
 {
-    private static ILogger? _logger;
+    // Better to use Serilog.Core.Logger over ILogger for performance 
+    private static Serilog.Core.Logger? _logger;
 
     public static void Initialize(string logDirectory = "Logs")
     {
@@ -40,11 +41,11 @@ public class Logger
     public static void Fatal(string message) => _logger?.Fatal(message);
     
     // Logging with args overloads
-    public static void Debug(string message, params object[] args) => _logger?.Information(message, args);
+    public static void Debug(string message, params object[] args) => _logger?.Debug(message, args);
     public static void Info(string message, params object[] args) => _logger?.Information(message, args);
-    public static void Warn(string message, params object[] args) => _logger?.Information(message, args);
-    public static void Error(string message, params object[] args) => _logger?.Information(message, args);
-    public static void Fatal(string message, params object[] args) => _logger?.Information(message, args);
+    public static void Warn(string message, params object[] args) => _logger?.Warning(message, args);
+    public static void Error(string message, params object[] args) => _logger?.Error(message, args);
+    public static void Fatal(string message, params object[] args) => _logger?.Fatal(message, args);
 
     // Log Exceptions/Exceptions with args overloads
     public static void Error(string message, Exception ex) => _logger?.Error(ex, message);
