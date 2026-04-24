@@ -1,8 +1,12 @@
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.OpenGL;
+using Silk.NET.Input;
 using FactoryGame.Core.Log;
 using FactoryGame.Client.Render;
+using FactoryGame.Core.Input;
+using FactoryGame.Core.Events;
+using FactoryGame.Core.Events.Types;
 
 namespace FactoryGame.Client;
 
@@ -10,6 +14,7 @@ public class Window
 {
     private readonly IWindow _window;
     private Renderer? _renderer;
+    private Input? _input;
 
     public Window(string title = "FactoryGame", int width = 800, int height = 600, bool vsync = false)
     {
@@ -36,6 +41,15 @@ public class Window
     {
         var gl = GL.GetApi(_window);
         _renderer = new Renderer(gl);
+        
+        _input = new Input(_window.CreateInput());
+        
+        _window.Resize += size => EventBus.Publish(new WindowResizedEvent(size.X, size.Y));
+        _window.FocusChanged += hasFocus => EventBus.Publish(new WindowFocusEvent(hasFocus));
+        
+        EventBus.Subscribe<KeyPressedEvent>(OnKeyPressed);
+        EventBus.Subscribe<WindowResizedEvent>(OnWindowResized);
+        
         Logger.Info("Window loaded.");
     }
 
@@ -49,8 +63,21 @@ public class Window
         _renderer?.Render(delta);
     }
 
+    private void OnKeyPressed(KeyPressedEvent e)
+    {
+        if (e.Key == Key.Escape)
+            _window.Close();
+    }
+    
+    private void OnWindowResized(WindowResizedEvent e)
+    {
+        _renderer?.OnResize(new Vector2D<int>(e.Width, e.Height));
+    }
+    
     private void OnClose()
     {
+        EventBus.Clear();
+        _input?.Dispose();
         _renderer?.Dispose();
         Logger.Info("Window closed.");
     }

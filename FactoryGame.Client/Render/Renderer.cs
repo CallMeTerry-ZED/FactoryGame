@@ -124,6 +124,12 @@ public class Renderer : IDisposable
         _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
     }
 
+    public void OnResize(Silk.NET.Maths.Vector2D<int> size)
+    {
+        _gl.Viewport(0, 0, (uint)size.X, (uint)size.Y);
+        Logger.Debug($"Viewport resized to {size.X}x{size.Y}");
+    }
+    
     public void Dispose()
     {
         _gl.DeleteVertexArray(_vao);
