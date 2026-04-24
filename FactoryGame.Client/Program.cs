@@ -1,7 +1,8 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using FactoryGame.Core;
+using FactoryGame.Core.Log;
 
-using FactoryGame.Core;
+Logger.Initialize();
+Logger.Info("Client starting...");
 
-Test test = new Test();
-
-test.Print("Hello World!");
+Logger.Info("Client shut down.");
+Logger.Shutdown();
