@@ -6,7 +6,6 @@ namespace FactoryGame.Server;
 public class Server
 {
     private bool _isRunning;
-    private readonly string _version = "0.0.1";
     private ServerNet? _net;
 
     public void Start()
@@ -15,7 +14,7 @@ public class Server
         _net = new ServerNet();
         _net.Start();
         
-        Logger.Info($"FactoryGame Server v{_version} starting...");
+        Logger.Info($"FactoryGame Server v{NetProtocol.Version} starting...");
         Logger.Info("Type 'help' for a list of commands.");
         Logger.Info("Type 'exit' to quit the server.");
 

@@ -9,8 +9,11 @@
 - [x] Setup basic FPS mouse look and WASD movement in client
 - [x] Setup basic Player class in core
 - [x] Server tracks connected players as Player objects
+- [x] Fix private properties in KeyEvents and WindowEvents
 - [ ] Have everything use new math/time classes in core
 - [ ] Hook time/framerate into client as well as server
+- [ ] Setup asset folder structure
+- [ ] Setup basic file I/O and asset loading in core
 - [ ] Have shaders load from files instead of hardcoded strings
 - [ ] Render a 3D cube and replace the triangle
 - [ ] Send player position to server each tick

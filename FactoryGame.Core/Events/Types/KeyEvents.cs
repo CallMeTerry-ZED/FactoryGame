@@ -5,7 +5,7 @@ namespace FactoryGame.Core.Events.Types;
 public class KeyPressedEvent : Event
 {
     public Key Key { get; }
-    private bool IsRepeat { get; }
+    public bool IsRepeat { get; }
 
     public KeyPressedEvent(Key key, bool isRepeat = false)
     {
@@ -18,7 +18,7 @@ public class KeyPressedEvent : Event
 
 public class KeyReleasedEvent : Event
 {
-    private Key Key { get; }
+    public Key Key { get; }
 
     public KeyReleasedEvent(Key key)
     {

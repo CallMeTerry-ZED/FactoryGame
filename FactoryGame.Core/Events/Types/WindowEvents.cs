@@ -21,7 +21,7 @@ public class WindowClosedEvent : Event
 
 public class WindowFocusEvent : Event
 {
-    private bool HasFocus { get; }
+    public bool HasFocus { get; }
 
     public WindowFocusEvent(bool hasFocus)
     {

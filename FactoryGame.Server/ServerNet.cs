@@ -10,11 +10,9 @@ namespace FactoryGame.Server;
 public class ServerNet : INetEventListener, IDisposable
 {
     private readonly NetManager _netManager;
-    //private readonly Dictionary<int, NetPeer> _peers = new();
     private readonly Dictionary<int, NetPeer> _peers = new();
     private readonly Dictionary<int, Player> _players = new();
-
-    //public int PlayerCount => _peers.Count;
+    
     public int PlayerCount => _players.Count;
 
     public ServerNet()
