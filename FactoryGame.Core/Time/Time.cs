@@ -1,5 +1,6 @@
 namespace FactoryGame.Core.Time;
 
+// NOTE: Time is static might cause issues when we add multithreading
 public static class Time
 {
     // Time since last frame/tick in seconds

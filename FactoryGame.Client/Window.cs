@@ -16,6 +16,7 @@ public class Window
     private readonly IWindow _window;
     private Renderer? _renderer;
     private Input? _input;
+    private ClientNet? _net;
 
     public Window(string title = "FactoryGame", int width = 800, int height = 600, bool vsync = false)
     {
@@ -51,12 +52,16 @@ public class Window
         EventBus.Subscribe<KeyPressedEvent>(OnKeyPressed);
         EventBus.Subscribe<WindowResizedEvent>(OnWindowResized);
         
+        _net = new ClientNet();
+        _net.Connect("127.0.0.1", "Player1");
+        
         Logger.Info("Window loaded.");
     }
 
     private void OnUpdate(double delta)
     {
         Time.Update(delta);
+        _net?.Poll();
     }
     
     private void OnRender(double delta)
@@ -78,6 +83,7 @@ public class Window
     private void OnClose()
     {
         EventBus.Clear();
+        _net?.Dispose();
         _input?.Dispose();
         _renderer?.Dispose();
         Logger.Info("Window closed.");

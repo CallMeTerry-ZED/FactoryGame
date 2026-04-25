@@ -1,16 +1,20 @@
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Time;
-
+using FactoryGame.Core.Net;
 namespace FactoryGame.Server;
 
 public class Server
 {
     private bool _isRunning;
     private readonly string _version = "0.0.1";
+    private ServerNet? _net;
 
     public void Start()
     {
         _isRunning = true;
+        _net = new ServerNet();
+        _net.Start();
+        
         Logger.Info($"FactoryGame Server v{_version} starting...");
         Logger.Info("Type 'help' for a list of commands.");
         Logger.Info("Type 'exit' to quit the server.");
@@ -43,16 +47,17 @@ public class Server
             var elapsed = (DateTime.UtcNow - tickStart).TotalMilliseconds;
             var sleepTime = tickRate - elapsed;
 
-            if (sleepTime < 0)
+            if (sleepTime > 0)
                 Thread.Sleep((int)sleepTime);
         }
 
         Logger.Info("Tick loop stopped.");
     }
 
-    private static void OnTick()
+    private void OnTick()
     {
         Time.Update(Time.FixedDeltaTime);
+        _net?.Poll();
         
         // Game simulation here
     }
@@ -109,7 +114,7 @@ public class Server
         Console.WriteLine("");
         Console.WriteLine($"  Status:    Running");
         Console.WriteLine($"  Uptime:    {GetUptime()}");
-        Console.WriteLine($"  Players:   0/4");
+        Console.WriteLine($"  Players:   {_net?.PlayerCount ?? 0}/{NetProtocol.MaxPlayers}");
         Console.WriteLine($"  Tick rate: 64");
         Console.WriteLine("");
     }
@@ -124,6 +129,7 @@ public class Server
     {
         Logger.Info("Server stopping...");
         _isRunning = false;
+        _net?.Dispose();
     }
 
     private readonly DateTime _startTime = DateTime.UtcNow;
