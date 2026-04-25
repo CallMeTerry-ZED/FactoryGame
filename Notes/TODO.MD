@@ -12,9 +12,9 @@
 - [x] Fix private properties in KeyEvents and WindowEvents
 - [ ] Have everything use new math/time classes in core
 - [ ] Hook time/framerate into client as well as server
-- [ ] Setup asset folder structure
-- [ ] Setup basic file I/O and asset loading in core
-- [ ] Have shaders load from files instead of hardcoded strings
+- [x] Setup asset folder structure
+- [x] Setup basic file I/O and asset loading in core
+- [x] Have shaders load from files instead of hardcoded strings
 - [ ] Render a 3D cube and replace the triangle
 - [ ] Send player position to server each tick
 - [ ] Server broadcast player positions to all connected clients

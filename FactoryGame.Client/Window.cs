@@ -9,6 +9,7 @@ using FactoryGame.Core.Events;
 using FactoryGame.Core.Events.Types;
 using FactoryGame.Core.Time;
 using FactoryGame.Core.Camera;
+using FactoryGame.Core.Assets;
 
 namespace FactoryGame.Client;
 
@@ -142,6 +143,7 @@ public class Window
         _net?.Dispose();
         _input?.Dispose();
         _renderer?.Dispose();
+        AssetManager.UnloadAll();
         Logger.Info("Window closed.");
     }
 }

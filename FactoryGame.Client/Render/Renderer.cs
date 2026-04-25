@@ -2,6 +2,7 @@ using FactoryGame.Core.Camera;
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 using FactoryGame.Core.Log;
+using FactoryGame.Core.Assets;
 
 namespace FactoryGame.Client.Render;
 
@@ -65,42 +66,21 @@ public class Renderer : IDisposable
 
     private void SetupShaders()
     {
-        // Vertex shader — runs once per vertex, positions it on screen
-        const string vertexSource = @"
-            #version 460 core
-            layout (location = 0) in vec3 aPosition;
-            
-            uniform mat4 uView;
-            uniform mat4 uProjection;
-            
-            void main()
-            {
-                gl_Position = uProjection * uView * vec4(aPosition, 1.0);
-            }";
+        var vertSource = AssetManager.LoadText("Shaders/basic.vert");
+        var fragSource = AssetManager.LoadText("Shaders/basic.frag");
 
-        // Fragment shader — runs once per pixel, colors it
-        const string fragmentSource = @"
-            #version 460 core
-            out vec4 FragColor;
-            void main()
-            {
-                FragColor = vec4(1.0, 0.5, 0.2, 1.0); // orange
-            }";
-
-        var vert = CompileShader(ShaderType.VertexShader, vertexSource);
-        var frag = CompileShader(ShaderType.FragmentShader, fragmentSource);
+        var vert = CompileShader(ShaderType.VertexShader, vertSource);
+        var frag = CompileShader(ShaderType.FragmentShader, fragSource);
 
         _shaderProgram = _gl.CreateProgram();
         _gl.AttachShader(_shaderProgram, vert);
         _gl.AttachShader(_shaderProgram, frag);
         _gl.LinkProgram(_shaderProgram);
 
-        // Check for link errors
         _gl.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int linkStatus);
         if (linkStatus == 0)
             Logger.Error($"Shader link error: {_gl.GetProgramInfoLog(_shaderProgram)}");
 
-        // Individual shaders no longer needed once linked
         _gl.DeleteShader(vert);
         _gl.DeleteShader(frag);
 

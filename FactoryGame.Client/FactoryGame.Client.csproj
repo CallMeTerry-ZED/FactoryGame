@@ -39,4 +39,11 @@
       <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.23.0" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Include="..\Assets\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>Assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+        </Content>
+    </ItemGroup>
+
 </Project>
