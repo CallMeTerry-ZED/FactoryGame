@@ -7,6 +7,7 @@ using FactoryGame.Client.Render;
 using FactoryGame.Core.Input;
 using FactoryGame.Core.Events;
 using FactoryGame.Core.Events.Types;
+using FactoryGame.Core.Time;
 
 namespace FactoryGame.Client;
 
@@ -55,7 +56,7 @@ public class Window
 
     private void OnUpdate(double delta)
     {
-        // game loop
+        Time.Update(delta);
     }
     
     private void OnRender(double delta)

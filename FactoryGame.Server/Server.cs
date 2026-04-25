@@ -1,4 +1,5 @@
 using FactoryGame.Core.Log;
+using FactoryGame.Core.Time;
 
 namespace FactoryGame.Server;
 
@@ -51,7 +52,9 @@ public class Server
 
     private static void OnTick()
     {
-        // Game simulation here — networking, world updates, etc.
+        Time.Update(Time.FixedDeltaTime);
+        
+        // Game simulation here
     }
 
     private void ConsoleLoop()
