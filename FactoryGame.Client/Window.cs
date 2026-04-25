@@ -8,6 +8,7 @@ using FactoryGame.Core.Input;
 using FactoryGame.Core.Events;
 using FactoryGame.Core.Events.Types;
 using FactoryGame.Core.Time;
+using FactoryGame.Core.Camera;
 
 namespace FactoryGame.Client;
 
@@ -17,6 +18,8 @@ public class Window
     private Renderer? _renderer;
     private Input? _input;
     private ClientNet? _net;
+    private Camera? _camera;
+    private bool _mouseCaptured = false;
 
     public Window(string title = "FactoryGame", int width = 800, int height = 600, bool vsync = false)
     {
@@ -49,11 +52,20 @@ public class Window
         _window.Resize += size => EventBus.Publish(new WindowResizedEvent(size.X, size.Y));
         _window.FocusChanged += hasFocus => EventBus.Publish(new WindowFocusEvent(hasFocus));
         
+        _camera = new Camera
+        {
+            AspectRatio = (float)_window.Size.X / _window.Size.Y
+        };
+        
         EventBus.Subscribe<KeyPressedEvent>(OnKeyPressed);
         EventBus.Subscribe<WindowResizedEvent>(OnWindowResized);
+        EventBus.Subscribe<MouseMovedEvent>(OnMouseMoved);
         
         _net = new ClientNet();
         _net.Connect("127.0.0.1", "Player1");
+        
+        // Capture mouse on start
+        SetMouseCaptured(true);
         
         Logger.Info("Window loaded.");
     }
@@ -62,22 +74,66 @@ public class Window
     {
         Time.Update(delta);
         _net?.Poll();
+        
+        if (_camera == null || _input == null) return;
+        
+        const float speed = 5f;
+        float velocity = speed * Time.DeltaTime;
+        
+        if (_input.IsKeyDown(Key.W))
+            _camera.Position += _camera.Forward * velocity;
+        if (_input.IsKeyDown(Key.S))
+            _camera.Position -= _camera.Forward * velocity;
+        if (_input.IsKeyDown(Key.A))
+            _camera.Position -= _camera.Right * velocity;
+        if (_input.IsKeyDown(Key.D))
+            _camera.Position += _camera.Right * velocity;
+        if (_input.IsKeyDown(Key.Space))
+            _camera.Position += new Vector3D<float>(0, 1, 0) * velocity;
+        if (_input.IsKeyDown(Key.ShiftLeft))
+            _camera.Position -= new Vector3D<float>(0, 1, 0) * velocity;
     }
     
     private void OnRender(double delta)
     {
-        _renderer?.Render(delta);
+        _renderer?.Render(delta, _camera);
     }
 
     private void OnKeyPressed(KeyPressedEvent e)
     {
         if (e.Key == Key.Escape)
             _window.Close();
+        
+        if (e.Key == Key.Tab)
+            SetMouseCaptured(!_mouseCaptured);
+    }
+    
+    private void OnMouseMoved(MouseMovedEvent e)
+    {
+        if (!_mouseCaptured || _camera == null) return;
+
+        const float sensitivity = 0.1f;
+        _camera.AddRotation(e.DeltaX * sensitivity, -e.DeltaY * sensitivity);
     }
     
     private void OnWindowResized(WindowResizedEvent e)
     {
         _renderer?.OnResize(new Vector2D<int>(e.Width, e.Height));
+        
+        if (_camera != null)
+            _camera.AspectRatio = (float)e.Width / e.Height;
+    }
+    
+    private void SetMouseCaptured(bool captured)
+    {
+        _mouseCaptured = captured;
+
+        if (_input == null) return;
+
+        var mouse = _input.SilkMouse;
+        if (mouse == null) return;
+
+        mouse.Cursor.CursorMode = captured ? CursorMode.Raw : CursorMode.Normal;
     }
     
     private void OnClose()

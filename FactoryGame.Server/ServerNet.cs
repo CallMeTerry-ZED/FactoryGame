@@ -3,15 +3,19 @@ using LiteNetLib.Utils;
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Net;
 using FactoryGame.Core.Net.Messages;
+using FactoryGame.Core.Player;
 
 namespace FactoryGame.Server;
 
 public class ServerNet : INetEventListener, IDisposable
 {
     private readonly NetManager _netManager;
+    //private readonly Dictionary<int, NetPeer> _peers = new();
     private readonly Dictionary<int, NetPeer> _peers = new();
+    private readonly Dictionary<int, Player> _players = new();
 
-    public int PlayerCount => _peers.Count;
+    //public int PlayerCount => _peers.Count;
+    public int PlayerCount => _players.Count;
 
     public ServerNet()
     {
@@ -54,12 +58,16 @@ public class ServerNet : INetEventListener, IDisposable
     {
         _peers[peer.Id] = peer;
         Logger.Info($"Peer connected: {peer.Address} (id={peer.Id}) [{_peers.Count}/{NetProtocol.MaxPlayers}]");
+        // Player gets created properly once we receive their handshake with their name
     }
 
     public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
     {
+        if (_players.TryGetValue(peer.Id, out var player))
+            Logger.Info($"Player '{player.Name}' disconnected. Reason: {disconnectInfo.Reason}");
+
         _peers.Remove(peer.Id);
-        Logger.Info($"Peer disconnected: {peer.Address} (id={peer.Id}) Reason: {disconnectInfo.Reason}");
+        _players.Remove(peer.Id);
     }
 
     public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
@@ -77,13 +85,16 @@ public class ServerNet : INetEventListener, IDisposable
                     if (handshake.Version != NetProtocol.Version)
                     {
                         Logger.Warn($"Version mismatch — client={handshake.Version} server={NetProtocol.Version}");
-                        var disconnect = new DisconnectMessage($"Version mismatch. Server is {NetProtocol.Version}.");
-                        Send(peer, disconnect);
+                        Send(peer, new DisconnectMessage($"Version mismatch. Server is {NetProtocol.Version}."));
                         peer.Disconnect();
                         return;
                     }
 
-                    // Send handshake back to confirm
+                    // Create the player now that we have their name
+                    var newPlayer = new Player(peer.Id, handshake.PlayerName);
+                    _players[peer.Id] = newPlayer;
+                    Logger.Info($"Player '{newPlayer.Name}' registered (id={newPlayer.Id}).");
+
                     Send(peer, new HandshakeMessage("Server", NetProtocol.Version));
                     break;
 
@@ -117,5 +128,7 @@ public class ServerNet : INetEventListener, IDisposable
     {
     }
 
+    public IEnumerable<string> GetPlayerNames() => _players.Values.Select(p => p.Name);
+    
     public void Dispose() => Stop();
 }

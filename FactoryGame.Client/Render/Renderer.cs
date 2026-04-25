@@ -1,4 +1,6 @@
+using FactoryGame.Core.Camera;
 using Silk.NET.OpenGL;
+using Silk.NET.Maths;
 using FactoryGame.Core.Log;
 
 namespace FactoryGame.Client.Render;
@@ -67,9 +69,13 @@ public class Renderer : IDisposable
         const string vertexSource = @"
             #version 460 core
             layout (location = 0) in vec3 aPosition;
+            
+            uniform mat4 uView;
+            uniform mat4 uProjection;
+            
             void main()
             {
-                gl_Position = vec4(aPosition, 1.0);
+                gl_Position = uProjection * uView * vec4(aPosition, 1.0);
             }";
 
         // Fragment shader — runs once per pixel, colors it
@@ -114,15 +120,46 @@ public class Renderer : IDisposable
         return shader;
     }
 
-    public void Render(double delta)
+    public void Render(double delta, Camera? camera)
     {
         _gl.ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        _gl.Clear(ClearBufferMask.ColorBufferBit);
+        _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        _gl.Enable(EnableCap.DepthTest);
 
         _gl.UseProgram(_shaderProgram);
         _gl.BindVertexArray(_vao);
+
+        if (camera != null)
+        {
+            SetMatrix("uView", camera.GetViewMatrix());
+            SetMatrix("uProjection", camera.GetProjectionMatrix());
+        }
+
         _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
     }
+
+    private unsafe void SetMatrix(string name, Matrix4X4<float> matrix)
+    {
+        int location = _gl.GetUniformLocation(_shaderProgram, name);
+        if (location < 0)
+        {
+            Logger.Warn($"Uniform '{name}' not found in shader.");
+            return;
+        }
+
+        float[] values =
+        {
+            matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+            matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+            matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+            matrix.M41, matrix.M42, matrix.M43, matrix.M44,
+        };
+        
+        fixed (float* ptr = values)
+            _gl.UniformMatrix4(location, 1, false, ptr);
+    }
+    
+    
 
     public void OnResize(Silk.NET.Maths.Vector2D<int> size)
     {

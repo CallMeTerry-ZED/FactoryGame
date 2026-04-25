@@ -4,10 +4,10 @@ namespace FactoryGame.Core.Events.Types;
 
 public class MouseMovedEvent : Event
 {
-    private float X { get; }
-    private float Y { get; }
-    private float DeltaX { get; }
-    private float DeltaY { get; }
+    public float X { get; }
+    public float Y { get; }
+    public float DeltaX { get; }
+    public float DeltaY { get; }
 
     public MouseMovedEvent(float x, float y, float deltaX, float deltaY)
     {
@@ -22,7 +22,7 @@ public class MouseMovedEvent : Event
 
 public class MouseScrolledEvent : Event
 {
-    private float ScrollDelta { get; }
+    public float ScrollDelta { get; }
 
     public MouseScrolledEvent(float scrollDelta)
     {
@@ -34,8 +34,8 @@ public class MouseScrolledEvent : Event
 
 public class MouseButtonEvent : Event
 {
-    private MouseButton Button { get; }
-    private bool IsPressed { get; }
+    public MouseButton Button { get; }
+    public bool IsPressed { get; }
 
     public MouseButtonEvent(MouseButton button, bool isPressed)
     {

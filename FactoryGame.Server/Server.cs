@@ -116,6 +116,14 @@ public class Server
         Console.WriteLine($"  Uptime:    {GetUptime()}");
         Console.WriteLine($"  Players:   {_net?.PlayerCount ?? 0}/{NetProtocol.MaxPlayers}");
         Console.WriteLine($"  Tick rate: 64");
+
+        if (_net?.PlayerCount > 0)
+        {
+            Console.WriteLine("  Connected:");
+            foreach (var name in _net.GetPlayerNames())
+                Console.WriteLine($"    - {name}");
+        }
+
         Console.WriteLine("");
     }
 

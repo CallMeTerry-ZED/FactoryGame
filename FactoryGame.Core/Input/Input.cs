@@ -16,6 +16,8 @@ public class Input : IDisposable
     private readonly HashSet<Key> _heldKeys = new();
     private readonly HashSet<MouseButton> _heldMouseButtons = new();
     private Vector2 _lastMousePos;
+    
+    public IMouse? SilkMouse => _mouse;
 
     public Input(IInputContext context)
     {

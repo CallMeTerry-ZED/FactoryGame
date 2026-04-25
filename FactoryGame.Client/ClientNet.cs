@@ -3,13 +3,18 @@ using LiteNetLib.Utils;
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Net;
 using FactoryGame.Core.Net.Messages;
+using FactoryGame.Core.Player;
+
+namespace FactoryGame.Client;
 
 public class ClientNet : INetEventListener, IDisposable
 {
     private readonly NetManager _netManager;
     private NetPeer? _server;
-
+    private string _pendingPlayerName = "Player";
+    
     public bool IsConnected => _server != null;
+    public Player? LocalPlayer { get; private set; }
 
     public ClientNet()
     {
@@ -42,8 +47,6 @@ public class ClientNet : INetEventListener, IDisposable
         Logger.Info("ClientNet disconnected.");
     }
 
-    private string _pendingPlayerName = "Player";
-
     // LiteNetLib callbacks
     public void OnPeerConnected(NetPeer peer)
     {
@@ -70,13 +73,16 @@ public class ClientNet : INetEventListener, IDisposable
             switch (message)
             {
                 case HandshakeMessage handshake:
+                    // Create our local player now that server confirmed us
+                    LocalPlayer = new Player(0, _pendingPlayerName);
                     Logger.Info($"Handshake confirmed by server (version={handshake.Version}). Ready!");
+                    Logger.Info($"Local player created: {LocalPlayer}");
                     break;
-
+                
                 case DisconnectMessage disconnect:
                     Logger.Warn($"Server rejected connection: {disconnect.Reason}");
                     break;
-
+                
                 default:
                     Logger.Warn($"Unhandled message type: {message.Type}");
                     break;
