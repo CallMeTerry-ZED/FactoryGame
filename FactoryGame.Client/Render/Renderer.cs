@@ -10,18 +10,39 @@ public class Renderer : IDisposable
 {
     private readonly GL _gl;
 
-    // Triangle geom, X,Y,Z
+    // 8 unique vertices of a cube
     private static readonly float[] Vertices =
     {
-        -0.5f, -0.5f, 0.0f, // bottom left
-        0.5f, -0.5f, 0.0f, // bottom right
-        0.0f, 0.5f, 0.0f, // top center
+        // Position
+        -0.5f, -0.5f, -0.5f, // 0 back bottom left
+        0.5f, -0.5f, -0.5f, // 1 back bottom right
+        0.5f, 0.5f, -0.5f, // 2 back top right
+        -0.5f, 0.5f, -0.5f, // 3 back top left
+        -0.5f, -0.5f, 0.5f, // 4 front bottom left
+        0.5f, -0.5f, 0.5f, // 5 front bottom right
+        0.5f, 0.5f, 0.5f, // 6 front top right
+        -0.5f, 0.5f, 0.5f, // 7 front top left
+    };
+    
+    // 6 faces, 2 triangles each, 3 indices per triangle. 36 indices
+    private static readonly uint[] Indices =
+    {
+        0, 1, 2, 2, 3, 0, // back
+        4, 5, 6, 6, 7, 4, // front
+        0, 4, 7, 7, 3, 0, // left
+        1, 5, 6, 6, 2, 1, // right
+        3, 2, 6, 6, 7, 3, // top
+        0, 1, 5, 5, 4, 0, // bottom
     };
 
     private uint _vao;
     private uint _vbo;
+    private uint _ebo;
     private uint _shaderProgram;
 
+    // Cube position in world space
+    private Vector3D<float> _cubePosition = new(0f, 0f, -3f);
+    
     public Renderer(GL gl)
     {
         _gl = gl;
@@ -34,11 +55,11 @@ public class Renderer : IDisposable
 
     private void SetupGeometry()
     {
-        // VAO — remembers how the vertex data is laid out
+        // VAO
         _vao = _gl.GenVertexArray();
         _gl.BindVertexArray(_vao);
 
-        // VBO — sends the vertex data to the GPU
+        // VBO
         _vbo = _gl.GenBuffer();
         _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
 
@@ -49,6 +70,20 @@ public class Renderer : IDisposable
                 _gl.BufferData(BufferTargetARB.ArrayBuffer,
                     (nuint)(Vertices.Length * sizeof(float)),
                     v,
+                    BufferUsageARB.StaticDraw);
+            }
+        }
+        
+        // EBO
+        _ebo = _gl.GenBuffer();
+        _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
+        unsafe
+        {
+            fixed (uint* i = Indices)
+            {
+                _gl.BufferData(BufferTargetARB.ElementArrayBuffer,
+                    (nuint)(Indices.Length * sizeof(uint)),
+                    i,
                     BufferUsageARB.StaticDraw);
             }
         }
@@ -111,11 +146,20 @@ public class Renderer : IDisposable
 
         if (camera != null)
         {
+            // Model matrix to position the cube in world space
+            var model = Matrix4X4.CreateTranslation(_cubePosition);
+            
+            SetMatrix("uModel", model);
             SetMatrix("uView", camera.GetViewMatrix());
             SetMatrix("uProjection", camera.GetProjectionMatrix());
         }
 
-        _gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+        unsafe
+        {
+            _gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
+        }
+        
+        //_gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
     }
 
     private unsafe void SetMatrix(string name, Matrix4X4<float> matrix)
@@ -138,8 +182,6 @@ public class Renderer : IDisposable
         fixed (float* ptr = values)
             _gl.UniformMatrix4(location, 1, false, ptr);
     }
-    
-    
 
     public void OnResize(Silk.NET.Maths.Vector2D<int> size)
     {
@@ -151,6 +193,7 @@ public class Renderer : IDisposable
     {
         _gl.DeleteVertexArray(_vao);
         _gl.DeleteBuffer(_vbo);
+        _gl.DeleteBuffer(_ebo);
         _gl.DeleteProgram(_shaderProgram);
         Logger.Info("Renderer disposed.");
     }

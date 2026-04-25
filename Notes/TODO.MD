@@ -10,12 +10,12 @@
 - [x] Setup basic Player class in core
 - [x] Server tracks connected players as Player objects
 - [x] Fix private properties in KeyEvents and WindowEvents
-- [ ] Have everything use new math/time classes in core
-- [ ] Hook time/framerate into client as well as server
+- [x] Have everything use new math/time classes in core
+- [x] Hook time/framerate into client as well as server
 - [x] Setup asset folder structure
 - [x] Setup basic file I/O and asset loading in core
 - [x] Have shaders load from files instead of hardcoded strings
-- [ ] Render a 3D cube and replace the triangle
+- [x] Render a 3D cube and replace the triangle
 - [ ] Send player position to server each tick
 - [ ] Server broadcast player positions to all connected clients
 
