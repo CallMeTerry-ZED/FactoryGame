@@ -26,6 +26,8 @@ public abstract class NetMessage
         {
             PacketType.Handshake => HandshakeMessage.Read(reader),
             PacketType.Disconnect => DisconnectMessage.Read(reader),
+            PacketType.PlayerPosition => PlayerPositionMessage.Read(reader),
+            PacketType.PlayerState => PlayerStateMessage.Read(reader),
             _=> throw new Exception($"Unknown packet type: {type}")
         };
     }

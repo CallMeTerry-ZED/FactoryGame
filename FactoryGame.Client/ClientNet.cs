@@ -1,5 +1,6 @@
 using LiteNetLib;
 using LiteNetLib.Utils;
+using Silk.NET.Maths;
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Net;
 using FactoryGame.Core.Net.Messages;
@@ -15,6 +16,7 @@ public class ClientNet : INetEventListener, IDisposable
     
     public bool IsConnected => _server != null;
     public Player? LocalPlayer { get; private set; }
+    public Dictionary<int, PlayerState> RemotePlayers { get; } = new();
 
     public ClientNet()
     {
@@ -36,6 +38,12 @@ public class ClientNet : INetEventListener, IDisposable
 
         // Send handshake once connected — stored for use in OnPeerConnected
         _pendingPlayerName = playerName;
+    }
+    
+    public void SendPosition(Vector3D<float> position, float yaw, float pitch)
+    {
+        if (_server == null || LocalPlayer == null) return;
+        Send(new PlayerPositionMessage(LocalPlayer.Id, position, yaw, pitch));
     }
 
     public void Poll() => _netManager.PollEvents();
@@ -73,14 +81,19 @@ public class ClientNet : INetEventListener, IDisposable
             switch (message)
             {
                 case HandshakeMessage handshake:
-                    // Create our local player now that server confirmed us
-                    LocalPlayer = new Player(0, _pendingPlayerName);
+                    LocalPlayer = new Player(handshake.AssignedId, _pendingPlayerName);
                     Logger.Info($"Handshake confirmed by server (version={handshake.Version}). Ready!");
                     Logger.Info($"Local player created: {LocalPlayer}");
                     break;
                 
                 case DisconnectMessage disconnect:
                     Logger.Warn($"Server rejected connection: {disconnect.Reason}");
+                    break;
+                
+                case PlayerStateMessage state:
+                    RemotePlayers.Clear();
+                    foreach (var p in state.Players)
+                        RemotePlayers[p.PlayerId] = p;
                     break;
                 
                 default:

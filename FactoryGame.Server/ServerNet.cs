@@ -78,6 +78,7 @@ public class ServerNet : INetEventListener, IDisposable
             switch (message)
             {
                 case HandshakeMessage handshake:
+                {
                     Logger.Info($"Handshake from '{handshake.PlayerName}' (version={handshake.Version})");
 
                     if (handshake.Version != NetProtocol.Version)
@@ -93,9 +94,19 @@ public class ServerNet : INetEventListener, IDisposable
                     _players[peer.Id] = newPlayer;
                     Logger.Info($"Player '{newPlayer.Name}' registered (id={newPlayer.Id}).");
 
-                    Send(peer, new HandshakeMessage("Server", NetProtocol.Version));
+                    Send(peer, new HandshakeMessage("Server", NetProtocol.Version, peer.Id));
                     break;
-
+                }
+                case PlayerPositionMessage pos:
+                {
+                    if (_players.TryGetValue(peer.Id, out var player))
+                    {
+                        player.Position = pos.Position;
+                        player.Yaw = pos.Yaw;
+                        player.Pitch = pos.Pitch;
+                    }
+                    break;
+                }
                 default:
                     Logger.Warn($"Unhandled message type: {message.Type}");
                     break;
@@ -107,6 +118,33 @@ public class ServerNet : INetEventListener, IDisposable
         }
     }
 
+    public void BroadcastPlayerStates()
+    {
+        if (_players.Count == 0) return;
+
+        var states = _players.Values.Select(p =>
+            new PlayerState(p.Id, p.Name, p.Position, p.Yaw, p.Pitch)).ToList();
+
+        var message = new PlayerStateMessage(states);
+        var data    = message.Serialize();
+
+        foreach (var peer in _peers.Values)
+        {
+            var writer = new NetDataWriter();
+            writer.Put(data);
+            // Unreliable for position — it's ok to drop a frame, we'll get the next one
+            peer.Send(writer, DeliveryMethod.Unreliable);
+        }
+    }
+
+    public void SendTo(NetPeer peer, NetMessage message)
+    {
+        var data   = message.Serialize();
+        var writer = new NetDataWriter();
+        writer.Put(data);
+        peer.Send(writer, DeliveryMethod.ReliableOrdered);
+    }
+    
     private void Send(NetPeer peer, NetMessage message)
     {
         var data = message.Serialize();

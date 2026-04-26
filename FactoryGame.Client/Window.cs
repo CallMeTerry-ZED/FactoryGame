@@ -21,7 +21,10 @@ public class Window
     private ClientNet? _net;
     private Camera? _camera;
     private bool _mouseCaptured = false;
-
+    private static readonly string LocalPlayerName = $"Player_{Random.Shared.Next(1000, 9999)}";
+    private double _positionSendTimer = 0;
+    private const double PositionSendInterval = 1.0 / 20.0; // 20hz
+    
     public Window(string title = "FactoryGame", int width = 800, int height = 600, bool vsync = false)
     {
         var options = WindowOptions.Default with
@@ -63,7 +66,7 @@ public class Window
         EventBus.Subscribe<MouseMovedEvent>(OnMouseMoved);
         
         _net = new ClientNet();
-        _net.Connect("127.0.0.1", "Player1");
+        _net.Connect("127.0.0.1", LocalPlayerName);
         
         // Capture mouse on start
         SetMouseCaptured(true);
@@ -93,11 +96,21 @@ public class Window
             _camera.Position += new Vector3D<float>(0, 1, 0) * velocity;
         if (_input.IsKeyDown(Key.ShiftLeft))
             _camera.Position -= new Vector3D<float>(0, 1, 0) * velocity;
+        
+        // Send position to server
+        _positionSendTimer += delta;
+        if (_positionSendTimer >= PositionSendInterval)
+        {
+            _net?.SendPosition(_camera.Position, _camera.Yaw, _camera.Pitch);
+            _positionSendTimer = 0;
+        }
     }
     
     private void OnRender(double delta)
     {
-        _renderer?.Render(delta, _camera);
+        var remotePlayers = _net?.RemotePlayers;
+        var localId       = _net?.LocalPlayer?.Id ?? -1;
+        _renderer?.Render(delta, _camera, remotePlayers, localId);
     }
 
     private void OnKeyPressed(KeyPressedEvent e)

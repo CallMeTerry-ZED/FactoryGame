@@ -3,6 +3,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Assets;
+using FactoryGame.Core.Net.Messages;
 
 namespace FactoryGame.Client.Render;
 
@@ -135,7 +136,7 @@ public class Renderer : IDisposable
         return shader;
     }
 
-    public void Render(double delta, Camera? camera)
+    public void Render(double delta, Camera? camera, Dictionary<int, PlayerState>? remotePlayers, int localPlayerId)
     {
         _gl.ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -146,12 +147,25 @@ public class Renderer : IDisposable
 
         if (camera != null)
         {
-            // Model matrix to position the cube in world space
-            var model = Matrix4X4.CreateTranslation(_cubePosition);
-            
-            SetMatrix("uModel", model);
             SetMatrix("uView", camera.GetViewMatrix());
             SetMatrix("uProjection", camera.GetProjectionMatrix());
+            
+            // Draw the test cube at world origin
+            SetMatrix("uModel", Matrix4X4.CreateTranslation(_cubePosition));
+            DrawCube();
+            
+            // TEMP: Draw a cube for each remote player, skip ourselves
+            if (remotePlayers != null)
+            {
+                foreach (var (id, state) in remotePlayers)
+                {
+                    if (id == localPlayerId) continue;
+
+                    var model = Matrix4X4.CreateTranslation(state.Position);
+                    SetMatrix("uModel", model);
+                    DrawCube();
+                }
+            }
         }
 
         unsafe
@@ -160,6 +174,11 @@ public class Renderer : IDisposable
         }
         
         //_gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
+    }
+    
+    private unsafe void DrawCube()
+    {
+        _gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
     }
 
     private unsafe void SetMatrix(string name, Matrix4X4<float> matrix)
@@ -183,7 +202,7 @@ public class Renderer : IDisposable
             _gl.UniformMatrix4(location, 1, false, ptr);
     }
 
-    public void OnResize(Silk.NET.Maths.Vector2D<int> size)
+    public void OnResize(Vector2D<int> size)
     {
         _gl.Viewport(0, 0, (uint)size.X, (uint)size.Y);
         Logger.Debug($"Viewport resized to {size.X}x{size.Y}");

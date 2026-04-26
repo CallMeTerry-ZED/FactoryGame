@@ -7,6 +7,8 @@ public class Server
 {
     private bool _isRunning;
     private ServerNet? _net;
+    private int _tickCount = 0;
+    private const int BroadcastRate = 64 / 20; // About 20 updates per second
 
     public void Start()
     {
@@ -58,7 +60,12 @@ public class Server
         Time.Update(Time.FixedDeltaTime);
         _net?.Poll();
         
-        // Game simulation here
+        _tickCount++;
+        if (_tickCount >= BroadcastRate)
+        {
+            _net?.BroadcastPlayerStates();
+            _tickCount = 0;
+        }
     }
 
     private void ConsoleLoop()

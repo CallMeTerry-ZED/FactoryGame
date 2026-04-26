@@ -16,8 +16,8 @@
 - [x] Setup basic file I/O and asset loading in core
 - [x] Have shaders load from files instead of hardcoded strings
 - [x] Render a 3D cube and replace the triangle
-- [ ] Send player position to server each tick
-- [ ] Server broadcast player positions to all connected clients
+- [x] Send player position to server each tick
+- [x] Server broadcast player positions to all connected clients
 
 # Later
 - [ ] Add version checking to server for server and client to ensure correct version is in use
@@ -31,7 +31,7 @@
 # Future
 - [ ] Abstract renderer for multi API backends i.e OpenGL, Vulkan, etc
 - [ ] Add optional steam networking
-- [ ] ECS (Entity Component System) for world objects
+- [ ] ECS (Entity Component System) for world objects/Maybe GOCS (Game Object Component System)
 - [ ] Mod API surface and Lua scripting via NLua
 - [ ] Map editor
 - [ ] Mod manager
