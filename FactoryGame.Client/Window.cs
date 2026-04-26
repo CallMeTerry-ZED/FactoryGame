@@ -10,6 +10,7 @@ using FactoryGame.Core.Events.Types;
 using FactoryGame.Core.Time;
 using FactoryGame.Core.Camera;
 using FactoryGame.Core.Assets;
+using FactoryGame.Client.UI;
 
 namespace FactoryGame.Client;
 
@@ -24,6 +25,8 @@ public class Window
     private static readonly string LocalPlayerName = $"Player_{Random.Shared.Next(1000, 9999)}";
     private double _positionSendTimer = 0;
     private const double PositionSendInterval = 1.0 / 20.0; // 20hz
+    private ImGuiController? _imgui;
+    private DebugOverlay? _debugOverlay;
     
     public Window(string title = "FactoryGame", int width = 800, int height = 600, bool vsync = false)
     {
@@ -49,9 +52,12 @@ public class Window
     private void OnLoad()
     {
         var gl = GL.GetApi(_window);
-        _renderer = new Renderer(gl);
+        var silkInput = _window.CreateInput();
         
-        _input = new Input(_window.CreateInput());
+        _renderer = new Renderer(gl);
+        _input = new Input(silkInput);
+        _imgui       = new ImGuiController(gl, _window, silkInput);
+        _debugOverlay = new DebugOverlay();
         
         _window.Resize += size => EventBus.Publish(new WindowResizedEvent(size.X, size.Y));
         _window.FocusChanged += hasFocus => EventBus.Publish(new WindowFocusEvent(hasFocus));
@@ -78,6 +84,7 @@ public class Window
     {
         Time.Update(delta);
         _net?.Poll();
+        _imgui?.Update((float)delta);
         
         if (_camera == null || _input == null) return;
         
@@ -111,15 +118,20 @@ public class Window
         var remotePlayers = _net?.RemotePlayers;
         var localId       = _net?.LocalPlayer?.Id ?? -1;
         _renderer?.Render(delta, _camera, remotePlayers, localId);
+        
+        // Draws on top of the scene
+        _debugOverlay?.Draw(_camera, remotePlayers, localId, _net?.IsConnected ?? false);
+        _imgui?.Render();
     }
 
     private void OnKeyPressed(KeyPressedEvent e)
     {
         if (e.Key == Key.Escape)
             _window.Close();
-        
         if (e.Key == Key.Tab)
             SetMouseCaptured(!_mouseCaptured);
+        if (e.Key == Key.F3)
+            _debugOverlay?.Toggle();
     }
     
     private void OnMouseMoved(MouseMovedEvent e)
@@ -155,6 +167,7 @@ public class Window
         EventBus.Clear();
         _net?.Dispose();
         _input?.Dispose();
+        _imgui?.Dispose();
         _renderer?.Dispose();
         AssetManager.UnloadAll();
         Logger.Info("Window closed.");

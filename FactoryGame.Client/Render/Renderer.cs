@@ -167,13 +167,6 @@ public class Renderer : IDisposable
                 }
             }
         }
-
-        unsafe
-        {
-            _gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
-        }
-        
-        //_gl.DrawArrays(PrimitiveType.Triangles, 0, 3);
     }
     
     private unsafe void DrawCube()

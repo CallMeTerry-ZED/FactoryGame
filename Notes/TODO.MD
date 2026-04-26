@@ -18,6 +18,7 @@
 - [x] Render a 3D cube and replace the triangle
 - [x] Send player position to server each tick
 - [x] Server broadcast player positions to all connected clients
+- [ ] Refactor renderer to be modular instead of one gaint render method
 
 # Later
 - [ ] Add version checking to server for server and client to ensure correct version is in use
@@ -26,7 +27,7 @@
 - [ ] Setup Skybox/Basic env (expand later)
 - [ ] FPS player controller with gravity and collision
 - [ ] Basic world/chunk system
-- [ ] ImGui debug overlay (FPS, position, server stats)
+- [x] ImGui debug overlay (FPS, position, server stats)
 
 # Future
 - [ ] Abstract renderer for multi API backends i.e OpenGL, Vulkan, etc
