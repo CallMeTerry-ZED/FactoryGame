@@ -18,7 +18,7 @@
 - [x] Render a 3D cube and replace the triangle
 - [x] Send player position to server each tick
 - [x] Server broadcast player positions to all connected clients
-- [ ] Refactor renderer to be modular instead of one gaint render method
+- [x] Refactor renderer to be modular instead of one gaint render method
 
 # Later
 - [ ] Add version checking to server for server and client to ensure correct version is in use
@@ -28,6 +28,7 @@
 - [ ] FPS player controller with gravity and collision
 - [ ] Basic world/chunk system
 - [x] ImGui debug overlay (FPS, position, server stats)
+- [ ] Update README
 
 # Future
 - [ ] Abstract renderer for multi API backends i.e OpenGL, Vulkan, etc
