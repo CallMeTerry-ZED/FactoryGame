@@ -50,9 +50,10 @@ public class Renderer : IDisposable
         _cubeMesh = new Mesh(_gl, CubeVertices, CubeIndices);
     }
 
+    public void ClearColor(float r, float g, float b, float a) => _gl.ClearColor(r, g, b, a);
+
     public void Render(double delta, Camera? camera, Dictionary<int, PlayerState>? remotePlayers, int localPlayerId)
     {
-        _gl.ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         _gl.Enable(EnableCap.DepthTest);
 

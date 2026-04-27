@@ -115,6 +115,8 @@ public class Window
     
     private void OnRender(double delta)
     {
+        _renderer?.ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        
         var remotePlayers = _net?.RemotePlayers;
         var localId       = _net?.LocalPlayer?.Id ?? -1;
         _renderer?.Render(delta, _camera, remotePlayers, localId);
