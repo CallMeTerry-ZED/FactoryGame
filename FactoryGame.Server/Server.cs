@@ -1,10 +1,13 @@
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Time;
 using FactoryGame.Core.Net;
+using FactoryGame.Core.Config;
 namespace FactoryGame.Server;
 
 public class Server
 {
+    private ServerConfig? _config;
+    
     private bool _isRunning;
     private ServerNet? _net;
     private int _tickCount = 0;
@@ -13,31 +16,41 @@ public class Server
     public void Start()
     {
         _isRunning = true;
-        _net = new ServerNet();
-        _net.Start();
         
-        Logger.Info($"FactoryGame Server v{NetProtocol.Version} starting...");
-        Logger.Info("Type 'help' for a list of commands.");
-        Logger.Info("Type 'exit' to quit the server.");
+        _config = new ServerConfig();
+        if (!File.Exists("Configs/Server/Server.cfg"))
+        {
+            ServerConfig.GenerateDefault();
+        }
+        _config.Load();
 
+        Logger.Info($"FactoryGame Server v{NetProtocol.Version} starting...");
+        Logger.Info($"Server name: {_config.ServerName}");
+        
+        _net = new ServerNet(_config.MaxPlayers);
+        _net.Start(_config.Port);
+        
         // Start the tick loop on a background thread so the main thread is free to read console commands
         var tickThread = new Thread(TickLoop)
         {
-            Name = "Server TickThread",
+            Name = "ServerTickThread",
             IsBackground = true,
         };
         tickThread.Start();
 
+        Logger.Info("Type 'help' for a list of commands.");
+        Logger.Info("Type 'exit' to quit the server.");
+        
         // Main thread handles console input
         ConsoleLoop();
     }
 
     private void TickLoop()
     {
-        const int targetTickRate = 64; // Ticks per second
-        const double tickRate = 1000.0 / targetTickRate;
+        int tickRate = _config?.TickRate ?? 64; // Ticks per second
+        double tickRateInterval = 1000.0 / tickRate;
 
-        Logger.Info($"Tick loop started at {targetTickRate} ticks/sec.");
+        Logger.Info($"Tick loop started at {tickRate} ticks/sec.");
 
         while (_isRunning)
         {
@@ -46,7 +59,7 @@ public class Server
             OnTick();
 
             var elapsed = (DateTime.UtcNow - tickStart).TotalMilliseconds;
-            var sleepTime = tickRate - elapsed;
+            var sleepTime = tickRateInterval - elapsed;
 
             if (sleepTime > 0)
                 Thread.Sleep((int)sleepTime);
@@ -118,14 +131,15 @@ public class Server
     private void PrintStatus()
     {
         Console.WriteLine("");
-        Console.WriteLine($"  Status:    Running");
-        Console.WriteLine($"  Uptime:    {GetUptime()}");
-        Console.WriteLine($"  Players:   {_net?.PlayerCount ?? 0}/{NetProtocol.MaxPlayers}");
-        Console.WriteLine($"  Tick rate: 64");
+        Console.WriteLine($"Name:      {_config?.ServerName ?? "FactoryGame Server"}");
+        Console.WriteLine($"Status:    Running");
+        Console.WriteLine($"Uptime:    {GetUptime()}");
+        Console.WriteLine($"Players:   {_net?.PlayerCount ?? 0}/{_config?.MaxPlayers ?? 4}");
+        Console.WriteLine($"Tick rate: {_config?.TickRate ?? 64}");
 
         if (_net?.PlayerCount > 0)
         {
-            Console.WriteLine("  Connected:");
+            Console.WriteLine("Connected:");
             foreach (var name in _net.GetPlayerNames())
                 Console.WriteLine($"    - {name}");
         }

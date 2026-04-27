@@ -12,6 +12,7 @@ public class ServerNet : INetEventListener, IDisposable
     private readonly NetManager _netManager;
     private readonly Dictionary<int, NetPeer> _peers = new();
     private readonly Dictionary<int, Player> _players = new();
+    private readonly int _maxPlayers;
     
     public int PlayerCount => _players.Count;
 
@@ -23,10 +24,25 @@ public class ServerNet : INetEventListener, IDisposable
         };
     }
 
+    public ServerNet(int maxPlayers)
+    {
+        _maxPlayers = maxPlayers;
+        _netManager = new NetManager(this)
+        {
+            AutoRecycle = true,
+        };
+    }
+
     public void Start()
     {
         _netManager.Start(NetProtocol.Port);
         Logger.Info($"Server started on port {NetProtocol.Port}");
+    }
+
+    public void Start(int port)
+    {
+        _netManager.Start(port);
+        Logger.Info($"Server started on port {port}");
     }
 
     // Called each server tick to poll for incoming packets
@@ -41,9 +57,9 @@ public class ServerNet : INetEventListener, IDisposable
     // LiteNetLib callbacks
     public void OnConnectionRequest(ConnectionRequest request)
     {
-        if (_peers.Count >= NetProtocol.MaxPlayers)
+        if (_players.Count >= _maxPlayers)
         {
-            Logger.Warn("Max players reached. Join request rejected.");
+            Logger.Warn($"Max players reached. Join request rejected. ({_players.Count}/{_maxPlayers})");
             request.Reject();
             return;
         }
