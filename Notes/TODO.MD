@@ -19,6 +19,9 @@
 - [x] Send player position to server each tick
 - [x] Server broadcast player positions to all connected clients
 - [x] Refactor renderer to be modular instead of one gaint render method
+- [ ] Setup some sort of scene/map class maybe use json for .map files?
+- [ ] Setup some sort of asset system that uses json for .asset files maybe?
+- [ ] Setup INI or CFG config file loading might be useful for server settings
 
 # Later
 - [ ] Add version checking to server for server and client to ensure correct version is in use
@@ -29,11 +32,12 @@
 - [ ] Basic world/chunk system
 - [x] ImGui debug overlay (FPS, position, server stats)
 - [ ] Update README
+- [ ] Expand server from 4 player peer2peer to an actual custmizable headless server (maybe support up to 24 players?)
+- [ ] Setup GOCS (Game Object Component System) - goes with scene stuff might also use json
 
 # Future
 - [ ] Abstract renderer for multi API backends i.e OpenGL, Vulkan, etc
 - [ ] Add optional steam networking
-- [ ] ECS (Entity Component System) for world objects/Maybe GOCS (Game Object Component System)
 - [ ] Mod API surface and Lua scripting via NLua
 - [ ] Map editor
 - [ ] Mod manager
