@@ -11,6 +11,9 @@ using FactoryGame.Core.Time;
 using FactoryGame.Core.Camera;
 using FactoryGame.Core.Assets;
 using FactoryGame.Client.UI;
+using FactoryGame.Core.GOCS;
+using FactoryGame.Client.Components;
+using FactoryGame.Core.GOCS.Components;
 
 namespace FactoryGame.Client;
 
@@ -27,6 +30,7 @@ public class Window
     private const double PositionSendInterval = 1.0 / 20.0; // 20hz
     private ImGuiController? _imgui;
     private DebugOverlay? _debugOverlay;
+    private Scene? _scene;
     
     public Window(string title = "FactoryGame", int width = 800, int height = 600, bool vsync = false)
     {
@@ -59,6 +63,15 @@ public class Window
         _imgui       = new ImGuiController(gl, _window, silkInput);
         _debugOverlay = new DebugOverlay();
         
+        _scene = new Scene("GameWorld");
+        _renderer.SetScene(_scene);
+
+        var cubeObject = _scene.CreateObject("TestCube");
+        var cubeMesh = cubeObject.AddComponent<MeshComponent>();
+        cubeMesh.Mesh = _renderer.CubeMesh;
+        cubeMesh.Shader = _renderer.BasicShader;
+        cubeObject.Transform.Position = new Vector3D<float>(0f, 0f, -3f);
+        
         _window.Resize += size => EventBus.Publish(new WindowResizedEvent(size.X, size.Y));
         _window.FocusChanged += hasFocus => EventBus.Publish(new WindowFocusEvent(hasFocus));
         
@@ -85,6 +98,7 @@ public class Window
         Time.Update(delta);
         _net?.Poll();
         _imgui?.Update((float)delta);
+        _scene?.Update();
         
         if (_camera == null || _input == null) return;
         

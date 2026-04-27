@@ -3,6 +3,8 @@ using Silk.NET.OpenGL;
 using FactoryGame.Core.Camera;
 using FactoryGame.Core.Log;
 using FactoryGame.Core.Net.Messages;
+using FactoryGame.Core.GOCS;
+using FactoryGame.Client.Components;
 
 namespace FactoryGame.Client.Render;
 
@@ -11,7 +13,11 @@ public class Renderer : IDisposable
     private readonly GL _gl;
     private readonly Shader _basicShader;
     private readonly Mesh _cubeMesh;
-
+    private Scene? _scene;
+    
+    public Mesh   CubeMesh    => _cubeMesh;
+    public Shader BasicShader => _basicShader;
+    
     // 8 unique vertices of a cube
     private static readonly float[] CubeVertices =
     {
@@ -37,9 +43,6 @@ public class Renderer : IDisposable
         0, 1, 5, 5, 4, 0, // bottom
     };
 
-    // Cube position in world space
-    private readonly Vector3D<float> _testCubePosition = new(0f, 0f, -3f);
-
     public Renderer(GL gl)
     {
         _gl = gl;
@@ -50,6 +53,7 @@ public class Renderer : IDisposable
         _cubeMesh = new Mesh(_gl, CubeVertices, CubeIndices);
     }
 
+    public void SetScene(Scene scene) => _scene = scene;
     public void ClearColor(float r, float g, float b, float a) => _gl.ClearColor(r, g, b, a);
 
     public void Render(double delta, Camera? camera, Dictionary<int, PlayerState>? remotePlayers, int localPlayerId)
@@ -65,15 +69,18 @@ public class Renderer : IDisposable
 
     private void DrawScene(RenderContext ctx, Dictionary<int, PlayerState>? remotePlayers, int localPlayerId)
     {
+        // Draw scene GameObjects that have a MeshComponent
+        if (_scene != null)
+        {
+            foreach (var mesh in _scene.GetAllComponents<MeshComponent>())
+                mesh.Draw(ctx);
+        }
+
+        // Draw remote players as cubes — temporary until players are GameObjects too
+        if (remotePlayers == null) return;
         _basicShader.Use();
         _basicShader.SetMatrix("uView", ctx.View);
         _basicShader.SetMatrix("uProjection", ctx.Projection);
-
-        // Test cube at world origin
-        DrawCube(_testCubePosition);
-
-        // Remote players
-        if (remotePlayers == null) return;
         foreach (var (id, state) in remotePlayers)
         {
             if (id == localPlayerId) continue;
